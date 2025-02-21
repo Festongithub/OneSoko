@@ -1,0 +1,1 @@
+The OneSoko is an application for both buyers and selllers to communicate , it is more of an E-commerce platform for both users , additionally, the application will be both used as a Ticketing system for events and job sharing for job seekers.
