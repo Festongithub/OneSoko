@@ -38,18 +38,18 @@ const ProductSchema = new Schema({
     }
 });
 // virtual name 
-UsersSchema.virtual("name").get(function(){
+ProductSchema.virtual("name").get(function(){
     let fullname = "";
     if (this.productName && this.price){
         fullname = `${this.productName}, ${this.price}`;
     }
 })
 
-UsersSchema.virtual("stock").get(function(){
+ProductSchema.virtual("fullstock").get(function(){
     let fullStock = "";
     if(this.stock && this.productName){
         fullStock = `${this.stock}, ${this.productName}`;
     }
-})
-const Product = mongoose.model("Products", ProductSchema);
-module.exports = {Product};
+});
+
+module.exports =  mongoose.model("Product", ProductSchema);

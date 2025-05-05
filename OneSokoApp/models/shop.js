@@ -59,5 +59,4 @@ ShopSchema.virtual("name").get(function(){
 ShopSchema.index({ location: "2dsphere"});
 ShopSchema.index({ shopName: 1}, { unique: true });
 
-const Shop = mongoose.model("Shop", ShopSchema);
-module.exports = {Shop}
+module.exports = mongoose.model("Shop", ShopSchema);
