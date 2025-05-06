@@ -1,10 +1,10 @@
 const asyncHandler = require("express-async-handler");
-const { Shop } = require("../models/shop");
-const Product = require("../models/products").Product;
-const Vendor = require("../models/vendor");
+const { Products } = require("../models/products");
+const Vendor  = require("../models/vendor");
 
 // List all shops
 exports.shops_list = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const shops = await Shop.find().populate('products').exec();
     res.status(200).json({
         message: "Shops retrieved successfully",
@@ -14,6 +14,7 @@ exports.shops_list = asyncHandler(async (req, res, next) => {
 
 // Get a single shop by ID
 exports.shop_detail = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const shop = await Shop.findById(req.params.id).populate('products').exec();
     if (!shop) {
         return res.status(404).json({ message: "Shop not found" });
@@ -26,6 +27,7 @@ exports.shop_detail = asyncHandler(async (req, res, next) => {
 
 // Create a new shop
 exports.shop_create = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { shopName, description, location, products } = req.body;
 
     // Validate inputs
@@ -49,6 +51,7 @@ exports.shop_create = asyncHandler(async (req, res, next) => {
 
 // Update a shop
 exports.shop_update = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { shopName, description, location, products } = req.body;
 
     // Validate inputs
@@ -75,6 +78,7 @@ exports.shop_update = asyncHandler(async (req, res, next) => {
 
 // Delete a shop
 exports.shop_delete = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const shop = await Shop.findById(req.params.id).exec();
     if (!shop) {
         return res.status(404).json({ message: "Shop not found" });
@@ -94,6 +98,7 @@ exports.shop_delete = asyncHandler(async (req, res, next) => {
 
 // Add product to a shop
 exports.shop_add_product = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { shopId, productId } = req.body;
 
     // Validate inputs
@@ -106,7 +111,7 @@ exports.shop_add_product = asyncHandler(async (req, res, next) => {
         return res.status(404).json({ message: "Shop not found" });
     }
 
-    const product = await Product.findById(productId).exec();
+    const product = await Products.findById(productId).exec();
     if (!product) {
         return res.status(404).json({ message: "Product not found" });
     }
@@ -125,6 +130,7 @@ exports.shop_add_product = asyncHandler(async (req, res, next) => {
 
 // Remove product from a shop
 exports.shop_remove_product = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { shopId, productId } = req.body;
 
     // Validate inputs
@@ -149,6 +155,7 @@ exports.shop_remove_product = asyncHandler(async (req, res, next) => {
 
 // Find shops near a location
 exports.shops_near = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { lat, lng, maxDistance = 10000 } = req.query;
 
     // Validate inputs
@@ -176,6 +183,7 @@ exports.shops_near = asyncHandler(async (req, res, next) => {
 
 // List products in a shop by vendor
 exports.shop_products = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { vendorId } = req.body;
 
     // Validate inputs
@@ -209,6 +217,7 @@ exports.shop_products = asyncHandler(async (req, res, next) => {
 
 // List vendor and shop owned
 exports.shop_vendor = asyncHandler(async (req, res, next) => {
+    const { Shop } = require("../models/shop");
     const { vendorId } = req.body;
 
     // Validate inputs

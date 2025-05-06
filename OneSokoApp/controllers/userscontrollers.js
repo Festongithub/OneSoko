@@ -60,6 +60,20 @@ exports.users_wishlist_add = asyncHandler(async(req, res, ) => {
     });
 });
 
+// Get user's wishlist
+exports.users_wishlist_get = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.params.id).populate('wishlist').exec();
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+        message: "Wishlist retrieved successfully",
+        wishlist: user.wishlist
+    });
+});
+
+
 // Remove product from wishlist
 
 exports.users_wishlist_remove = asyncHandler(async(req, res, next) => {
@@ -128,6 +142,19 @@ exports.users_cart_add = asyncHandler(async (req, res, next) => {
     res.status(200).json({
         message: "Product added to cart",
         user: updatedUser
+    });
+});
+
+// Get user's cart
+exports.users_cart_get = asyncHandler(async (req, res, next) => {
+    const user = await User.findById(req.params.id).populate('cart.product').exec();
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+
+    res.status(200).json({
+        message: "Cart retrieved successfully",
+        cart: user.cart
     });
 });
 

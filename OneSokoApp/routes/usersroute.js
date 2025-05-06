@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const userController = require('../controllers/usercontroller');
+const userController = require('../controllers/userscontrollers');
 
 // User Routes
 router.post('/wishlist/add', userController.users_wishlist_add);

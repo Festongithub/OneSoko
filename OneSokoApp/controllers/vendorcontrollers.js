@@ -1,13 +1,17 @@
 const asyncHandler = require("express-async-handler");
-const { Vendor } = require("../models/vendor");
 const { Shop } = require("../models/shop");
+
+// Clear module cache for vendor.js
+delete require.cache[require.resolve("../models/vendor")];
 
 // List all vendors
 exports.vendors_list = asyncHandler(async (req, res, next) => {
-    const vendors = await Vendor.find().populate({
-        path: 'shop',
-        populate: { path: 'products' }
-    }).exec();
+    const { Vendor } = require("../models/vendor");
+    console.log('Vendor:', Vendor); // Debug log
+    if (!Vendor) {
+        throw new Error('Vendor model is undefined');
+    }
+    const vendors = await Vendor.find().populate('shop').exec();
     res.status(200).json({
         message: "Vendors retrieved successfully",
         vendors
@@ -16,10 +20,8 @@ exports.vendors_list = asyncHandler(async (req, res, next) => {
 
 // Get a single vendor by ID
 exports.vendor_detail = asyncHandler(async (req, res, next) => {
-    const vendor = await Vendor.findById(req.params.id).populate({
-        path: 'shop',
-        populate: { path: 'products' }
-    }).exec();
+    const { Vendor } = require("../models/vendor");
+    const vendor = await Vendor.findById(req.params.id).populate('shop').exec();
     if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
     }
@@ -31,26 +33,18 @@ exports.vendor_detail = asyncHandler(async (req, res, next) => {
 
 // Create a new vendor
 exports.vendor_create = asyncHandler(async (req, res, next) => {
-    const { vendorName, phoneNumber, email, shopId } = req.body;
+    const { Vendor } = require("../models/vendor");
+    const { vendorName, phoneNumber, email } = req.body;
 
     // Validate inputs
     if (!vendorName || !phoneNumber || !email) {
         return res.status(400).json({ message: "vendorName, phoneNumber, and email are required" });
     }
 
-    // Validate shopId if provided
-    if (shopId) {
-        const shop = await Shop.findById(shopId).exec();
-        if (!shop) {
-            return res.status(404).json({ message: "Shop not found" });
-        }
-    }
-
     const vendor = new Vendor({
         vendorName,
         phoneNumber,
-        email,
-        shop: shopId || null
+        email
     });
 
     await vendor.save();
@@ -62,19 +56,12 @@ exports.vendor_create = asyncHandler(async (req, res, next) => {
 
 // Update a vendor
 exports.vendor_update = asyncHandler(async (req, res, next) => {
-    const { vendorName, phoneNumber, email, shopId } = req.body;
+    const { Vendor } = require("../models/vendor");
+    const { vendorName, phoneNumber, email } = req.body;
 
     // Validate inputs
     if (!vendorName || !phoneNumber || !email) {
         return res.status(400).json({ message: "vendorName, phoneNumber, and email are required" });
-    }
-
-    // Validate shopId if provided
-    if (shopId) {
-        const shop = await Shop.findById(shopId).exec();
-        if (!shop) {
-            return res.status(404).json({ message: "Shop not found" });
-        }
     }
 
     const vendor = await Vendor.findById(req.params.id).exec();
@@ -85,7 +72,6 @@ exports.vendor_update = asyncHandler(async (req, res, next) => {
     vendor.vendorName = vendorName;
     vendor.phoneNumber = phoneNumber;
     vendor.email = email;
-    vendor.shop = shopId || null;
 
     await vendor.save();
     res.status(200).json({
@@ -96,6 +82,7 @@ exports.vendor_update = asyncHandler(async (req, res, next) => {
 
 // Delete a vendor
 exports.vendor_delete = asyncHandler(async (req, res, next) => {
+    const { Vendor } = require("../models/vendor");
     const vendor = await Vendor.findById(req.params.id).exec();
     if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
@@ -109,6 +96,7 @@ exports.vendor_delete = asyncHandler(async (req, res, next) => {
 
 // Assign a shop to a vendor
 exports.vendor_assign_shop = asyncHandler(async (req, res, next) => {
+    const { Vendor } = require("../models/vendor");
     const { vendorId, shopId } = req.body;
 
     // Validate inputs
@@ -129,18 +117,16 @@ exports.vendor_assign_shop = asyncHandler(async (req, res, next) => {
     vendor.shop = shopId;
     await vendor.save();
 
-    const updatedVendor = await Vendor.findById(vendorId).populate({
-        path: 'shop',
-        populate: { path: 'products' }
-    }).exec();
+    const updatedVendor = await Vendor.findById(vendorId).populate('shop').exec();
     res.status(200).json({
-        message: "Shop assigned to vendor successfully",
+        message: "Shop assigned to vendor",
         vendor: updatedVendor
     });
 });
 
 // Remove a shop from a vendor
 exports.vendor_remove_shop = asyncHandler(async (req, res, next) => {
+    const { Vendor } = require("../models/vendor");
     const { vendorId } = req.body;
 
     // Validate inputs
@@ -153,15 +139,12 @@ exports.vendor_remove_shop = asyncHandler(async (req, res, next) => {
         return res.status(404).json({ message: "Vendor not found" });
     }
 
-    vendor.shop = null;
+    vendor.shop = undefined;
     await vendor.save();
 
-    const updatedVendor = await Vendor.findById(vendorId).populate({
-        path: 'shop',
-        populate: { path: 'products' }
-    }).exec();
+    const updatedVendor = await Vendor.findById(vendorId).populate('shop').exec();
     res.status(200).json({
-        message: "Shop removed from vendor successfully",
+        message: "Shop removed from vendor",
         vendor: updatedVendor
     });
 });

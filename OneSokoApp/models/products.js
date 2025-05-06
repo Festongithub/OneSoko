@@ -1,55 +1,46 @@
-// product model
-
 const mongoose = require("mongoose");
-const Schema  = mongoose.Schema;
-const Product = require("../models/products");
+const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
-    productName:{
+    productName: {
         type: String,
         required: true,
-        trime: true
+        trim: true
     },
     price: {
         type: Number,
-        required: true,
-        min: 0
-    },
-    description:{
-        type: String,
-        trim: true,
         required: true
+    },
+    description: {
+        type: String,
+        required: true,
+        trim: true
     },
     stock: {
         type: Number,
-        required: true,
-        min: 0,
-        default: 0
+        required: true
     },
     status: {
         type: String,
-        required: true,
-        enum : ["Available", "Restocked", "Unavailable"],
-        default: "Available"
+        enum: ['Available', 'Out of Stock'],
+        required: true
     },
-    createdAt:{
+    createdAt: {
         type: Date,
         default: Date.now
     }
-});
-// virtual name 
-ProductSchema.virtual("name").get(function(){
-    let fullname = "";
-    if (this.productName && this.price){
-        fullname = `${this.productName}, ${this.price}`;
-    }
-})
-
-ProductSchema.virtual("fullstock").get(function(){
-    let fullStock = "";
-    if(this.stock && this.productName){
-        fullStock = `${this.stock}, ${this.productName}`;
-    }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-module.exports =  mongoose.model("Product", ProductSchema);
+ProductSchema.virtual("name").get(function() {
+    return `${this.productName}, ${this.price}`;
+});
+
+ProductSchema.virtual("stockInfo").get(function() {
+    return `${this.stock}, ${this.productName}`;
+});
+
+const Products = mongoose.model("Products", ProductSchema);
+module.exports = { Products };

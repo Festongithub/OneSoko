@@ -1,0 +1,2 @@
+Image uploading --> creation(Vendor), 
+Logo for Shops --> (creation (Shops))
