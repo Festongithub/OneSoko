@@ -1,16 +1,9 @@
 const asyncHandler = require("express-async-handler");
-const { Shop } = require("../models/shop");
-
-// Clear module cache for vendor.js
-delete require.cache[require.resolve("../models/vendor")];
+const mongoose = require("mongoose");
 
 // List all vendors
 exports.vendors_list = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
-    console.log('Vendor:', Vendor); // Debug log
-    if (!Vendor) {
-        throw new Error('Vendor model is undefined');
-    }
+    const Vendor = mongoose.model("Vendor");
     const vendors = await Vendor.find().populate('shop').exec();
     res.status(200).json({
         message: "Vendors retrieved successfully",
@@ -20,7 +13,7 @@ exports.vendors_list = asyncHandler(async (req, res, next) => {
 
 // Get a single vendor by ID
 exports.vendor_detail = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
     const vendor = await Vendor.findById(req.params.id).populate('shop').exec();
     if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
@@ -33,7 +26,7 @@ exports.vendor_detail = asyncHandler(async (req, res, next) => {
 
 // Create a new vendor
 exports.vendor_create = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
     const { vendorName, phoneNumber, email } = req.body;
 
     // Validate inputs
@@ -56,7 +49,7 @@ exports.vendor_create = asyncHandler(async (req, res, next) => {
 
 // Update a vendor
 exports.vendor_update = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
     const { vendorName, phoneNumber, email } = req.body;
 
     // Validate inputs
@@ -82,7 +75,7 @@ exports.vendor_update = asyncHandler(async (req, res, next) => {
 
 // Delete a vendor
 exports.vendor_delete = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
     const vendor = await Vendor.findById(req.params.id).exec();
     if (!vendor) {
         return res.status(404).json({ message: "Vendor not found" });
@@ -96,7 +89,8 @@ exports.vendor_delete = asyncHandler(async (req, res, next) => {
 
 // Assign a shop to a vendor
 exports.vendor_assign_shop = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
+    const Shop = mongoose.model("Shop");
     const { vendorId, shopId } = req.body;
 
     // Validate inputs
@@ -126,7 +120,7 @@ exports.vendor_assign_shop = asyncHandler(async (req, res, next) => {
 
 // Remove a shop from a vendor
 exports.vendor_remove_shop = asyncHandler(async (req, res, next) => {
-    const { Vendor } = require("../models/vendor");
+    const Vendor = mongoose.model("Vendor");
     const { vendorId } = req.body;
 
     // Validate inputs

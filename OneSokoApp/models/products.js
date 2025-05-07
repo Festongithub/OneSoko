@@ -9,21 +9,22 @@ const ProductSchema = new Schema({
     },
     price: {
         type: Number,
-        required: true
+        required: true,
+        min: 0
     },
     description: {
         type: String,
-        required: true,
         trim: true
     },
     stock: {
         type: Number,
-        required: true
+        required: true,
+        min: 0
     },
     status: {
         type: String,
         enum: ['Available', 'Out of Stock'],
-        required: true
+        default: 'Available'
     },
     createdAt: {
         type: Date,
@@ -34,13 +35,19 @@ const ProductSchema = new Schema({
     toObject: { virtuals: true }
 });
 
-ProductSchema.virtual("name").get(function() {
+ProductSchema.virtual('name').get(function() {
     return `${this.productName}, ${this.price}`;
 });
 
-ProductSchema.virtual("stockInfo").get(function() {
+ProductSchema.virtual('stockInfo').get(function() {
     return `${this.stock}, ${this.productName}`;
 });
 
-const Products = mongoose.model("Products", ProductSchema);
+// Prevent model overwrite with try-catch
+let Products;
+try {
+    Products = mongoose.model("Products");
+} catch (error) {
+    Products = mongoose.model("Products", ProductSchema);
+}
 module.exports = { Products };

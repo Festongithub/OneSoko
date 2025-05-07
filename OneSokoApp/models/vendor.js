@@ -32,5 +32,11 @@ VendorSchema.virtual('Details').get(function() {
     return `${this.vendorName}, ${this.phoneNumber}`;
 });
 
-const Vendor = mongoose.model("Vendor", VendorSchema);
+// Prevent model overwrite with try-catch
+let Vendor;
+try {
+    Vendor = mongoose.model("Vendor");
+} catch (error) {
+    Vendor = mongoose.model("Vendor", VendorSchema);
+}
 module.exports = { Vendor };

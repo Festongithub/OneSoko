@@ -61,7 +61,7 @@ app.post('/api/shops/products', shopController.shop_products);
 app.post('/api/shops/vendor', shopController.shop_vendor);
 
 // Product Routes
-app.get('/api/products', productController.product_list);
+app.get('/api/products', productController.products_list);
 app.get('/api/products/:id', productController.product_detail);
 app.post('/api/products', productController.product_create);
 app.put('/api/products/:id', productController.product_update);
