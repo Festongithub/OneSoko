@@ -1,188 +1,75 @@
-const Product  = require("../models/products");
-const user = require("../models/users");
-const asyncHandler = require("express-async-handler");
+const asyncHandler = require('express-async-handler');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 
-// Display list of all users.
+// Register a new user
+exports.user_register = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    console.log('req.body:', req.body);
+    const { username, email, password, role } = req.body;
 
-exports.users_list = asyncHandler(async(req, res, next) => {
-    res.send("NOT Implemented : Users List");
-});
-
-// handle user creation
-exports.users_create_get = asyncHandler(async(req, res, next) => {
-    res.send("NOT implemented : User Create GET");
-});
-
-// handle user deletion
-exports.users_delete_get = asyncHandler(async(req, res, next) =>{
-    res.send("NOT Implemented: User delete GEt")
-});
-
-// Handle user update on POST
-exports.users_update_post = asyncHandler(async(req, res, next) =>{
-    res.send("NOT implemented; User update  POST");
-});
-
-exports.users_wishlist_add = asyncHandler(async(req, res, ) => {
-    const {userId, productId} = req.body;
-
-    if(!userId || productId){
-        return res.status(400).json({
-            message: "userId and ProductId are required"
-        });
-    }
-    // check if user exists
-    const user = await user.findById(userId);
-    if(!user){
-        res.status(400).json({
-            message: "User not found"
-        });
+    if (!username || !email || !password) {
+        return res.status(400).json({ message: 'Username, email, and password are required' });
     }
 
-    // check if the products exixts
-    const product = await Product.findById(productId);
-    if(!product){
-        res.status(400).json({
-            message: "product not found"
-        });
+    const userExists = await User.findOne({ email }).exec();
+    if (userExists) {
+        return res.status(400).json({ message: 'User already exists' });
     }
 
-    // Populate wishlist for response
-    if(!user.wishlist.includes(productId)){
-        user.wishlist.push(productId);
-        await user.save();
-    };
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(password, salt);
 
-    const updateUser = await user.findById(userId).populate("wishlist");
-    res.status(200).json({
-        message: "Product added to wishlist",
-        user: updateUser
+    const user = new User({
+        username,
+        email,
+        password: hashedPassword,
+        role: role || 'customer', // Default to customer
+        wishlist: [],
+        cart: []
     });
-});
-
-// Get user's wishlist
-exports.users_wishlist_get = asyncHandler(async (req, res, next) => {
-    const user = await User.findById(req.params.id).populate('wishlist').exec();
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    res.status(200).json({
-        message: "Wishlist retrieved successfully",
-        wishlist: user.wishlist
-    });
-});
-
-
-// Remove product from wishlist
-
-exports.users_wishlist_remove = asyncHandler(async(req, res, next) => {
-    const {userId, productId} = req.body;
-
-    if(!userId || productId){
-        return res.status(400).json({
-            message: "userId and productId required"
-        });
-    }
-    const user = await user.findById(userId);
-    if(!user){
-        res.status(400).json({
-            message: "User not found"
-        });
-    }
-
-    // Remove product from wishlist
-    user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
     await user.save();
 
-    // Response for wishlist population
-    const updateUser = await user.findById(userId).populate("wishlist");
-    res.status(200).json({
-        message: "Product added to wishlist",
-        user : updateUser
-    });
-})
-
-// Add product to cart
-exports.users_cart_add = asyncHandler(async (req, res, next) => {
-    const { userId, productId, quantity = 1 } = req.body;
-
-    // Validate inputs
-    if (!userId || !productId) {
-        return res.status(400).json({ message: "userId and productId are required" });
-    }
-    if (quantity < 1) {
-        return res.status(400).json({ message: "Quantity must be at least 1" });
-    }
-
-    // Check if user exists
-    const user = await User.findById(userId);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if product exists
-    const product = await Product.findById(productId);
-    if (!product) {
-        return res.status(404).json({ message: "Product not found" });
-    }
-
-    // Check if product is already in cart
-    const cartItem = user.cart.find(item => item.product.toString() === productId);
-    if (cartItem) {
-        cartItem.quantity += quantity;
-    } else {
-        user.cart.push({ product: productId, quantity });
-    }
-
-    await user.save();
-
-    // Populate cart for response
-    const updatedUser = await User.findById(userId).populate('cart.product');
-    res.status(200).json({
-        message: "Product added to cart",
-        user: updatedUser
+    const token = generateToken(user._id, user.role);
+    res.status(201).json({
+        message: 'User registered successfully',
+        user: { _id: user._id, username, email, role },
+        token
     });
 });
 
-// Get user's cart
-exports.users_cart_get = asyncHandler(async (req, res, next) => {
-    const user = await User.findById(req.params.id).populate('cart.product').exec();
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
+// Login a user
+exports.user_login = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    console.log('req.body:', req.body);
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+        return res.status(400).json({ message: 'Email and password are required' });
     }
 
+    const user = await User.findOne({ email }).exec();
+    if (!user || !(await bcrypt.compare(password, user.password))) {
+        return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    const token = generateToken(user._id, user.role);
     res.status(200).json({
-        message: "Cart retrieved successfully",
-        cart: user.cart
+        message: 'User logged in successfully',
+        user: { _id: user._id, username: user.username, email, role: user.role },
+        token
     });
 });
 
-// Remove product from cart
-exports.users_cart_remove = asyncHandler(async (req, res, next) => {
-    const { userId, productId } = req.body;
-
-    // Validate inputs
-    if (!userId || !productId) {
-        return res.status(400).json({ message: "userId and productId are required" });
-    }
-
-    // Check if user exists
-    const user = await User.findById(userId);
-    if (!user) {
-        return res.status(404).json({ message: "User not found" });
-    }
-
-    // Remove product from cart
-    user.cart = user.cart.filter(item => item.product.toString() !== productId);
-    await user.save();
-
-    // Populate cart for response
-    const updatedUser = await User.findById(userId).populate('cart.product');
-    res.status(200).json({
-        message: "Product removed from cart",
-        user: updatedUser
+// Generate JWT
+const generateToken = (id, role) => {
+    return jwt.sign({ id, role }, process.env.JWT_SECRET || 'your_jwt_secret', {
+        expiresIn: '30d'
     });
-});
+};
 
-
+module.exports = {
+    user_register,
+    user_login
+};

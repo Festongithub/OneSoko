@@ -3,6 +3,9 @@ const router = express.Router();
 const userController = require('../controllers/userscontrollers');
 
 // User Routes
+router.post('/register', userController.user_register);
+router.post('/login', userController.user_login);
+
 router.post('/wishlist/add', userController.users_wishlist_add);
 router.post('/wishlist/remove', userController.users_wishlist_remove);
 router.get('/wishlist/:id', userController.users_wishlist_get);

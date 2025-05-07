@@ -141,7 +141,7 @@ exports.product_name_price = asyncHandler(async (req, res, next) => {
     });
 });
 
-// Get product name and descriptions
+// Get product_name_description
 exports.product_name_descriptions = asyncHandler(async (req, res, next) => {
     const Products = mongoose.model("Products");
     const products = await Products.find().select('productName description').exec();

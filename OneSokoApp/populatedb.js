@@ -1,309 +1,92 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcryptjs');
 
-// Users Schema
-const UsersSchema = new mongoose.Schema({
-    username: {
-        type: String,
-        required: true,
-        maxLength: 10,
-        unique: true,
-        trim: true
-    },
-    email: {
-        type: String,
-        required: true,
-        maxLength: 10,
-        unique: true,
-        trim: true
-    },
-    password: {
-        type: String,
-        required: true
-    },
-    wishlist: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product'
-    }],
-    cart: [{
-        product: {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product'
-        },
-        quantity: {
-            type: Number,
-            required: true,
-            min: 1,
-            default: 1
-        }
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
+// Import models
+const { User } = require('./models/users');
+const { Products } = require('./models/products');
+const { Shop } = require('./models/shop');
+const { Vendor } = require('./models/vendor');
 
-UsersSchema.virtual("name").get(function() {
-    let fullname = "";
-    if (this.username && this.email) {
-        fullname = `${this.username}, ${this.email}`;
-    }
-    return fullname;
-});
-
-UsersSchema.virtual("url").get(function() {
-    return `/OneSoko/user/${this._id}`;
-});
-
-// Shop Schema
-const ShopSchema = new mongoose.Schema({
-    shopName: {
-        type: String,
-        required: true,
-        unique: true
-    },
-    description: {
-        type: String,
-        trim: true,
-        required: true
-    },
-    products: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Product'
-    }],
-    createdAt: {
-        type: Date,
-        default: Date.now
-    },
-    location: {
-        type: {
-            type: String,
-            enum: ['Point'],
-            required: true
-        },
-        coordinates: {
-            type: [Number],
-            required: true
-        }
-    }
-}, {
-    timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
-
-ShopSchema.virtual("name").get(function() {
-    let shopFullName = "";
-    if (this.shopName && this.location) {
-        shopFullName = `${this.shopName}, ${this.location.type}`;
-    }
-    return shopFullName;
-});
-
-ShopSchema.index({ location: "2dsphere" });
-ShopSchema.index({ shopName: 1 });
-
-// Product Schema
-const ProductSchema = new mongoose.Schema({
-    productName: {
-        type: String,
-        required: true,
-        trim: true
-    },
-    price: {
-        type: Number,
-        required: true,
-        min: 0
-    },
-    description: {
-        type: String,
-        trim: true,
-        required: true
-    },
-    stock: {
-        type: Number,
-        required: true,
-        min: 0,
-        default: 0
-    },
-    status: {
-        type: String,
-        required: true,
-        enum: ["Available", "Restocked", "Unavailable"],
-        default: "Available"
-    },
-    createdAt: {
-        type: Date,
-        default: Date.now
-    }
-}, {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
-
-ProductSchema.virtual("name").get(function() {
-    let fullname = "";
-    if (this.productName && this.price) {
-        fullname = `${this.productName}, ${this.price}`;
-    }
-    return fullname;
-});
-
-ProductSchema.virtual("stockInfo").get(function() {
-    let fullStock = "";
-    if (this.stock && this.productName) {
-        fullStock = `${this.stock}, ${this.productName}`;
-    }
-    return fullStock;
-});
-
-// Vendor Schema
-const VendorSchema = new mongoose.Schema({
-    vendorName: {
-        type: String,
-        required: true,
-        trim: true,
-        unique: true
-    },
-    phoneNumber: {
-        type: Number,
-        required: true,
-        unique: true
-    },
-    email: {
-        type: String,
-        required: true,
-        unique: true,
-        trim: true
-    },
-    shop: {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Shop'
-    }
-}, {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true }
-});
-
-VendorSchema.virtual("Details").get(function() {
-    let VendorDetails = "";
-    if (this.vendorName && this.phoneNumber) {
-        VendorDetails = `${this.vendorName}, ${this.phoneNumber}`;
-    }
-    return VendorDetails;
-});
-
-// Create Models
-const User = mongoose.model('User', UsersSchema);
-const Shop = mongoose.model('Shop', ShopSchema);
-const Product = mongoose.model('Product', ProductSchema);
-const Vendor = mongoose.model('Vendor', VendorSchema);
-
-// Sample Data Population
 async function populateDB() {
     try {
         // Connect to MongoDB
-        await mongoose.connect('mongodb://localhost:27017/OneSokoDb', {});
+        await mongoose.connect('mongodb://127.0.0.1/OneSoko', {
+            useNewUrlParser: true,
+            useUnifiedTopology: true
+        });
         console.log('Connected to MongoDB');
 
         // Clear existing data
         await User.deleteMany({});
+        await Products.deleteMany({});
         await Shop.deleteMany({});
-        await Product.deleteMany({});
         await Vendor.deleteMany({});
         console.log('Cleared existing data');
 
-        // Create Products
-        const products = await Product.create([
-            {
-                productName: 'Laptop',
-                price: 999.99,
-                description: 'High-performance laptop',
-                stock: 10,
-                status: 'Available'
-            },
-            {
-                productName: 'Smartphone',
-                price: 499.99,
-                description: 'Latest model smartphone',
-                stock: 20,
-                status: 'Available'
-            },
-            {
-                productName: 'Headphones',
-                price: 79.99,
-                description: 'Wireless headphones',
-                stock: 15,
-                status: 'Restocked'
-            }
-        ]);
-        console.log('Created products');
+        // Create products
+        const product1 = new Products({
+            _id: '68149d8d5f0ee548f2e8fa30',
+            productName: 'Laptop',
+            price: 999.99,
+            description: 'High-performance laptop',
+            stock: 10,
+            status: 'Available',
+            createdAt: new Date('2025-05-06T12:00:00Z')
+        });
+        await product1.save();
+        console.log('Created product:', product1.productName);
 
-        // Create Shops
-        const shops = await Shop.create([
-            {
-                shopName: 'Tech Haven',
-                description: 'Electronics and gadgets',
-                products: [products[0]._id, products[1]._id],
-                location: {
-                    type: 'Point',
-                    coordinates: [-73.935242, 40.730610]
-                }
-            },
-            {
-                shopName: 'Gadget Zone',
-                description: 'Latest tech accessories',
-                products: [products[1]._id, products[2]._id],
-                location: {
-                    type: 'Point',
-                    coordinates: [-73.955242, 40.740610]
-                }
-            }
-        ]);
-        console.log('Created shops');
+        const product2 = new Products({
+            _id: '68149d8d5f0ee548f2e8fa31',
+            productName: 'Smartphone',
+            price: 499.99,
+            description: 'Latest smartphone model',
+            stock: 15,
+            status: 'Available',
+            createdAt: new Date('2025-05-06T12:00:00Z')
+        });
+        await product2.save();
+        console.log('Created product:', product2.productName);
 
-        // Create Vendors
-        const vendors = await Vendor.create([
-            {
-                vendorName: 'John Doe',
-                phoneNumber: 1234567890,
-                email: 'john@example.com',
-                shop: shops[0]._id
+        // Create a shop
+        const shop = new Shop({
+            _id: '68149d8d5f0ee548f2e8fa36',
+            shopName: 'Tech Haven',
+            description: 'Electronics and gadgets',
+            location: {
+                type: 'Point',
+                coordinates: [-73.935242, 40.730610]
             },
-            {
-                vendorName: 'Jane Smith',
-                phoneNumber: 9087654321,
-                email: 'jane@example.com',
-                shop: shops[1]._id
-            }
-        ]);
-        console.log('Created vendors');
+            products: [product1._id, product2._id]
+        });
+        await shop.save();
+        console.log('Created shop:', shop.shopName);
 
-        // Create Users
-        await User.create([
-            {
-                username: 'alice',
-                email: 'alice.com',
-                password: 'password123',
-                wishlist: [products[0]._id, products[2]._id],
-                cart: [
-                    { product: products[0]._id, quantity: 1 },
-                    { product: products[1]._id, quantity: 2 }
-                ]
-            },
-            {
-                username: 'bob',
-                email: 'bob@ex.com',
-                password: 'password456',
-                wishlist: [products[1]._id],
-                cart: [
-                    { product: products[2]._id, quantity: 3 }
-                ]
-            }
-        ]);
-        console.log('Created users');
+        // Create a vendor
+        const vendor = new Vendor({
+            _id: '68149d8d5f0ee548f2e8fa38',
+            vendorName: 'John Doe',
+            phoneNumber: 1234567890,
+            email: 'john@example.com',
+            shop: shop._id
+        });
+        await vendor.save();
+        console.log('Created vendor:', vendor.vendorName);
+
+        // Create a user
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash('test123', salt);
+        const user = new User({
+            _id: '68149d8d5f0ee548f2e8fa40',
+            username: 'testuser',
+            email: 'user@example.com',
+            password: hashedPassword,
+            role: 'customer',
+            wishlist: [],
+            cart: []
+        });
+        await user.save();
+        console.log('Created user:', user.username);
 
         console.log('Database populated successfully');
     } catch (error) {
@@ -314,5 +97,4 @@ async function populateDB() {
     }
 }
 
-// Run the population script
 populateDB();

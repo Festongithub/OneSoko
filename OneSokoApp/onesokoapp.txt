@@ -1,2 +1,10 @@
 Image uploading --> creation(Vendor), 
 Logo for Shops --> (creation (Shops))
+Payment system 
+Implement Authentication and Authorization
+Add Product Search and Filtering
+Introduce Order Management
+Enhance User APIs
+Improve Error Handling and Logging
+Add API Documentation
+Implement Testing
