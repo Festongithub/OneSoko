@@ -2,10 +2,11 @@ const asyncHandler = require('express-async-handler');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
+// const validator = require('validator');
 
 // Register a new user
-exports.user_register = asyncHandler(async (req, res, next) => {
-    const User = mongoose.model('User');
+const user_register = asyncHandler(async (req, res, next) => {
+    const User = require('../models/users'); 
     console.log('req.body:', req.body);
     const { username, email, password, role } = req.body;
 
@@ -17,6 +18,7 @@ exports.user_register = asyncHandler(async (req, res, next) => {
     if (userExists) {
         return res.status(400).json({ message: 'User already exists' });
     }
+
 
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
@@ -40,7 +42,7 @@ exports.user_register = asyncHandler(async (req, res, next) => {
 });
 
 // Login a user
-exports.user_login = asyncHandler(async (req, res, next) => {
+const user_login = asyncHandler(async (req, res, next) => {
     const User = mongoose.model('User');
     console.log('req.body:', req.body);
     const { email, password } = req.body;
@@ -69,7 +71,131 @@ const generateToken = (id, role) => {
     });
 };
 
-module.exports = {
-    user_register,
-    user_login
-};
+// In userscontrollers.js, add after existing exports
+// Add product to wishlist
+const users_wishlist_add = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    const Products = mongoose.model('Products');
+    console.log('req.body:', req.body);
+    const { productId } = req.body;
+
+    if (!productId) {
+        return res.status(400).json({ message: 'productId is required' });
+    }
+
+    const product = await Products.findById(productId).exec();
+    if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const user = await User.findById(req.user._id).exec();
+    if (user.wishlist.includes(productId)) {
+        return res.status(400).json({ message: 'Product already in wishlist' });
+    }
+
+    user.wishlist.push(productId);
+    await user.save();
+    const populatedUser = await User.findById(req.user._id).populate('wishlist').exec();
+    res.status(200).json({
+        message: 'Product added to wishlist',
+        wishlist: populatedUser.wishlist
+    });
+});
+
+// Get user's wishlist
+const users_wishlist_get = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model("User");
+    const user = await User.findById(req.params.id).populate('wishlist').exec();
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+        message: "Wishlist retrieved successfully",
+        wishlist: user.wishlist
+    });
+});
+
+
+// Remove product from wishlist
+const user_remove_wishlist = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    console.log('req.body:', req.body);
+    const { productId } = req.body;
+
+    if (!productId) {
+        return res.status(400).json({ message: 'productId is required' });
+    }
+
+    const user = await User.findById(req.user._id).exec();
+    user.wishlist = user.wishlist.filter(id => id.toString() !== productId);
+    await user.save();
+    const populatedUser = await User.findById(req.user._id).populate('wishlist').exec();
+    res.status(200).json({
+        message: 'Product removed from wishlist',
+        wishlist: populatedUser.wishlist
+    });
+});
+
+// Add product to cart
+const user_add_cart = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    const Products = mongoose.model('Products');
+    console.log('req.body:', req.body);
+    const { productId, quantity } = req.body;
+
+    if (!productId || !quantity) {
+        return res.status(400).json({ message: 'productId and quantity are required' });
+    }
+
+    const product = await Products.findById(productId).exec();
+    if (!product) {
+        return res.status(404).json({ message: 'Product not found' });
+    }
+
+    const user = await User.findById(req.user._id).exec();
+    user.cart.push({ product: productId, quantity });
+    await user.save();
+    const populatedUser = await User.findById(req.user._id).populate('cart.product').exec();
+    res.status(200).json({
+        message: 'Product added to cart',
+        cart: populatedUser.cart
+    });
+});
+
+// Remove product from cart
+const user_remove_cart = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model('User');
+    console.log('req.body:', req.body);
+    const { productId } = req.body;
+
+    if (!productId) {
+        return res.status(400).json({ message: 'productId is required' });
+    }
+
+    const user = await User.findById(req.user._id).exec();
+    user.cart = user.cart.filter(item => item.product.toString() !== productId);
+    await user.save();
+    const populatedUser = await User.findById(req.user._id).populate('cart.product').exec();
+    res.status(200).json({
+        message: 'Product removed from cart',
+        cart: populatedUser.cart
+    });
+});
+
+// Get user's cart
+const users_cart_get = asyncHandler(async (req, res, next) => {
+    const User = mongoose.model("User");
+    const user = await User.findById(req.params.id).populate('cart.productId').exec();
+    if (!user) {
+        return res.status(404).json({ message: "User not found" });
+    }
+    res.status(200).json({
+        message: "Cart retrieved successfully",
+        cart: user.cart
+    });
+});
+
+module.exports = {user_register, user_login, users_wishlist_add,
+    users_wishlist_get, user_remove_wishlist, 
+    user_remove_cart, user_add_cart, 
+    users_cart_get }

@@ -8,7 +8,7 @@ const fs = require('fs');
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/usersroute');
 
-const usersController = require('./controllers/userscontrollers');
+const userController = require('./controllers/userscontrollers');
 const vendorController = require('./controllers/vendorcontrollers');
 const shopController = require('./controllers/shopcontrollers');
 const productsController = require('./controllers/productscontrollers');
