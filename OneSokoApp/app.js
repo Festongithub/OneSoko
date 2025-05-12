@@ -26,7 +26,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
 
 app.use('/', indexRouter);
-app.use('/api/auth', usersRouter);
+app.use('/onesoko/auth', usersRouter);
 
 // MongoDB connection
 const mongoDB = 'mongodb://127.0.0.1/OneSoko';
@@ -48,32 +48,32 @@ const registeredModels = mongoose.modelNames();
 console.log('Registered models:', registeredModels);
 
 // Product Routes
-app.get('/api/products', productsController.products_list);
-app.get('/api/products/:id', productsController.product_detail);
-app.post('/api/products', protect, restrictTo('admin', 'vendor'), productsController.product_create);
-app.put('/api/products/:id', protect, restrictTo('admin', 'vendor'), productsController.product_update);
-app.delete('/api/products/:id', protect, restrictTo('admin'), productsController.product_delete);
+app.get('/onesoko/products', productsController.products_list);
+app.get('/onesoko/products/:id', productsController.product_detail);
+app.post('/onesoko/products', protect, restrictTo('admin', 'vendor'), productsController.product_create);
+app.put('/onesoko/products/:id', protect, restrictTo('admin', 'vendor'), productsController.product_update);
+app.delete('/onesoko/products/:id', protect, restrictTo('admin'), productsController.product_delete);
 
 // Shop Routes
-app.get('/api/shops', shopController.shops_list);
-app.get('/api/shops/:id', shopController.shop_detail);
-app.post('/api/shops', protect, restrictTo('admin'), shopController.shop_create);
-app.put('/api/shops/:id', protect, restrictTo('admin'), shopController.shop_update);
-app.delete('/api/shops/:id', protect, restrictTo('admin'), shopController.shop_delete);
-app.post('/api/shops/add-product', protect, restrictTo('admin', 'vendor'), shopController.shop_add_product);
-app.post('/api/shops/remove-product', protect, restrictTo('admin', 'vendor'), shopController.shop_remove_product);
-app.get('/api/shops/near', shopController.shops_near);
-app.post('/api/shops/products', shopController.shop_products);
-app.post('/api/shops/vendor', protect, restrictTo('admin'), shopController.shop_vendor);
+app.get('/onesoko/shops', shopController.shops_list);
+app.get('/onesoko/shops/:id', shopController.shop_detail);
+app.post('/onesoko/shops', protect, restrictTo('admin'), shopController.shop_create);
+app.put('/onesoko/shops/:id', protect, restrictTo('admin'), shopController.shop_update);
+app.delete('/onesoko/shops/:id', protect, restrictTo('admin'), shopController.shop_delete);
+app.post('/onesoko/shops/add-product', protect, restrictTo('admin', 'vendor'), shopController.shop_add_product);
+app.post('/onesoko/shops/remove-product', protect, restrictTo('admin', 'vendor'), shopController.shop_remove_product);
+app.get('/onesoko/shops/near', shopController.shops_near);
+app.post('/onesoko/shops/products', shopController.shop_products);
+app.post('/onesoko/shops/vendor', protect, restrictTo('admin'), shopController.shop_vendor);
 
 // Vendor Routes
-app.get('/api/vendors', vendorController.vendors_list);
-app.get('/api/vendors/:id', vendorController.vendor_detail);
-app.post('/api/vendors', protect, restrictTo('admin'), vendorController.vendor_create);
-app.put('/api/vendors/:id', protect, restrictTo('admin', 'vendor'), vendorController.vendor_update);
-app.delete('/api/vendors/:id', protect, restrictTo('admin'), vendorController.vendor_delete);
-app.post('/api/vendors/assign-shop', protect, restrictTo('admin'), vendorController.vendor_assign_shop);
-app.post('/api/vendors/remove-shop', protect, restrictTo('admin'), vendorController.vendor_remove_shop);
+app.get('/onesoko/vendors', vendorController.vendors_list);
+app.get('/onesoko/vendors/:id', vendorController.vendor_detail);
+app.post('/onesoko/vendors', protect, restrictTo('admin'), vendorController.vendor_create);
+app.put('/onesoko/vendors/:id', protect, restrictTo('admin', 'vendor'), vendorController.vendor_update);
+app.delete('/onesoko/vendors/:id', protect, restrictTo('admin'), vendorController.vendor_delete);
+app.post('/onesoko/vendors/assign-shop', protect, restrictTo('admin'), vendorController.vendor_assign_shop);
+app.post('/onesoko/vendors/remove-shop', protect, restrictTo('admin'), vendorController.vendor_remove_shop);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {

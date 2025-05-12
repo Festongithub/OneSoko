@@ -4,7 +4,7 @@ Payment system
 Implement Authentication and Authorization
 Add Product Search and Filtering
 Introduce Order Management
-Enhance User APIs
+Enhance User onesokos
 Improve Error Handling and Logging
-Add API Documentation
+Add onesoko Documentation
 Implement Testing
