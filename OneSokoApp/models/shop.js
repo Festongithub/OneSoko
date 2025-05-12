@@ -1,63 +1,43 @@
-// shop model
-
 const mongoose = require("mongoose");
-const Schema  = mongoose.Schema;
+const Schema = mongoose.Schema;
 
-// shop schema 
 const ShopSchema = new Schema({
-
     shopName: {
         type: String,
-        required: true
-    },
-
-    description:{
-        type: String,
+        required: true,
         trim: true,
-        required: true
+        unique: true
     },
-
-    products: [
-        {
-            type: mongoose.Schema.Types.ObjectId,
-            ref: 'Product'
-    }],
-
-    // functionality to create a virtual shop
-    createdAt:{
-        type: Date,
-        default: Date.now
-    },
-
-    // shop location stored
-    location: {
+    description: {
         type: String,
-        enum: ["Point"],
         required: true,
         trim: true
     },
-    coordinates: {
-        type: [Number],
-        required: true,
+    location: {
+        type: {
+            type: String,
+            enum: ['Point'],
+            required: true
+        },
+        coordinates: {
+            type: [Number],
+            required: true
+        }
     },
-},
-    {
-        timestamps: true,
-        toJSON: {virtuals: true },
-        toObject: { virtuals: true }
-}
-)
-
-// shop virtual property
-ShopSchema.virtual("name").get(function(){
-    let shopFullName = "";
-    if(this.shopName && this.location)
-    {
-        shopFullName = `${this.shopName}, ${this.location}`
-    }
+    products: [{
+        type: Schema.Types.ObjectId,
+        ref: 'Products'
+    }]
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
-ShopSchema.index({ location: "2dsphere"});
-ShopSchema.index({ shopName: 1}, { unique: true });
+
+ShopSchema.index({ location: '2dsphere' });
+
+ShopSchema.virtual('name').get(function() {
+    return `${this.shopName}, ${this.location.type}`;
+});
 
 const Shop = mongoose.model("Shop", ShopSchema);
-module.exports = {Shop}
+module.exports = { Shop };

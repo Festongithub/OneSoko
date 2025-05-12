@@ -1,55 +1,53 @@
-// product model
-
 const mongoose = require("mongoose");
-const Schema  = mongoose.Schema;
-const Product = require("../models/products");
+const Schema = mongoose.Schema;
 
 const ProductSchema = new Schema({
-    productName:{
+    productName: {
         type: String,
         required: true,
-        trime: true
+        trim: true
     },
     price: {
         type: Number,
         required: true,
         min: 0
     },
-    description:{
+    description: {
         type: String,
-        trim: true,
-        required: true
+        trim: true
     },
     stock: {
         type: Number,
         required: true,
-        min: 0,
-        default: 0
+        min: 0
     },
     status: {
         type: String,
-        required: true,
-        enum : ["Available", "Restocked", "Unavailable"],
-        default: "Available"
+        enum: ['Available', 'Out of Stock'],
+        default: 'Available'
     },
-    createdAt:{
+    createdAt: {
         type: Date,
         default: Date.now
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
-// virtual name 
-UsersSchema.virtual("name").get(function(){
-    let fullname = "";
-    if (this.productName && this.price){
-        fullname = `${this.productName}, ${this.price}`;
-    }
-})
 
-UsersSchema.virtual("stock").get(function(){
-    let fullStock = "";
-    if(this.stock && this.productName){
-        fullStock = `${this.stock}, ${this.productName}`;
-    }
-})
-const Product = mongoose.model("Products", ProductSchema);
-module.exports = {Product};
+ProductSchema.virtual('name').get(function() {
+    return `${this.productName}, ${this.price}`;
+});
+
+ProductSchema.virtual('stockInfo').get(function() {
+    return `${this.stock}, ${this.productName}`;
+});
+
+// Prevent model overwrite with try-catch
+let Products;
+try {
+    Products = mongoose.model("Products");
+} catch (error) {
+    Products = mongoose.model("Products", ProductSchema);
+}
+module.exports = { Products };

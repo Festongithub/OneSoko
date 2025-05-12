@@ -1,18 +1,13 @@
-// Vendor  model design
-
 const mongoose = require("mongoose");
-const Schema  = mongoose.Schema;
-const Product = require("../models/products");
-const Shop = require("../models/shop");
+const Schema = mongoose.Schema;
 
 const VendorSchema = new Schema({
     vendorName: {
         type: String,
         required: true,
-        trim: true,
-        unique: true
+        trim: true
     },
-    phoneNumber:{
+    phoneNumber: {
         type: Number,
         required: true,
         unique: true
@@ -21,19 +16,27 @@ const VendorSchema = new Schema({
         type: String,
         required: true,
         unique: true,
-        trim: true
+        trim: true,
+        match: [/^\S+@\S+\.\S+$/, 'Please enter a valid email']
     },
     shop: {
-        type: mongoose.Schema.Types.ObjectId,
+        type: Schema.Types.ObjectId,
         ref: 'Shop'
     }
+}, {
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true }
 });
 
-VendorSchema.virtual("Details").get(function(){
-    let VendorDetails = "";
-    if(this.vendorName && this.phoneNumber){
-        VendorDetails = `${this.VendorSchema}, ${this.phoneNumber}`;
-    }
+VendorSchema.virtual('Details').get(function() {
+    return `${this.vendorName}, ${this.phoneNumber}`;
 });
 
-module.exports = mongoose.model("Vendor", VendorSchema);
+// Prevent model overwrite with try-catch
+let Vendor;
+try {
+    Vendor = mongoose.model("Vendor");
+} catch (error) {
+    Vendor = mongoose.model("Vendor", VendorSchema);
+}
+module.exports = { Vendor };

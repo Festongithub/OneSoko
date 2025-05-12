@@ -1,0 +1,10 @@
+Image uploading --> creation(Vendor), 
+Logo for Shops --> (creation (Shops))
+Payment system 
+Implement Authentication and Authorization
+Add Product Search and Filtering
+Introduce Order Management
+Enhance User onesokos
+Improve Error Handling and Logging
+Add onesoko Documentation
+Implement Testing
